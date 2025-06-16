@@ -41,30 +41,9 @@ const STATIC_EVENTS = {
   },
   history: [
     {
-      occurrenceDate: '28/02/2025',
-      occurenceDescription:
-        'A Sra. Usuária 1 compareceu ao atendimento agendado com a especialista e inserida em acompanhamento por meio do PAEFI. A família estava abrigada e encaminhada ao CREAS para inserção em acompanhamento. A Sra. Usuária 1 foi vítima de violência doméstica e está sob medida protetiva. O Programa de Segurança Preventiva Viva Flor foi acionado para garantir atendimento prioritário da Polícia Militar. Foi repassada a 5ª autorização do auxílio vulnerabilidade e solicitada a 6ª parcela do excepcional.',
-    },
-    {
-      occurrenceDate: '27/02/2025',
-      occurenceDescription:
-        'A família está em situação de vulnerabilidade socioeconômica. A responsável familiar é vítima de violência doméstica. A família é composta pela genitora, 02 adolescentes e 02 crianças (16, 15, 10 e 05 anos). A filha adolescente de 16 anos está grávida. A responsável familiar e os filhos estavam abrigados e foram encaminhados ao CREAS para acompanhamento.',
-    },
-    {
-      occurrenceDate: '27/01/2025',
-      occurenceDescription:
-        'Em atenção ao Memorando GEACAF, foi oficiada a Diretoria de Benefícios (DIBES) via SEI para priorização na listagem de requisição para benefícios excepcionais. A família encontra-se acolhida desde 19/09/2024 e é natural de Brasília/DF. A Sra. Usuária 1 recebeu um cargo em comissão na Unidade de Engenharia e Arquitetura da Secretaria de Estado de Justiça e Cidadania do DF. Iniciou acompanhamento em saúde mental no CAPS II.',
-    },
-    {
-      occurrenceDate: '27/12/2024',
-      occurenceDescription:
-        'Em articulação com a SEDES, a acolhida está conquistando autonomia com uma atividade remunerada. Está em acompanhamento de saúde mental no CAPS. Foi contemplada com um cargo em comissão na Unidade de Engenharia e Arquitetura da Secretaria de Estado de Justiça e Cidadania do DF. Seu filho foi matriculado e frequenta o 3º ano da Escola Classe, e iniciou acompanhamento no CAPSi.',
-    },
-    {
-      occurrenceDate: '21/09/2024',
-      occurenceDescription:
-        'Encaminhamos USUÁRIA 1 para continuidade no acompanhamento familiar devido à vulnerabilidade e risco pessoal/social. Esteve acolhida na Casa Abrigo entre 08/08/2024 e 19/09/2024 devido à violência doméstica relatada. No desligamento, solicitou o Dispositivo de Proteção Preventiva na SSP.',
-    },
+      occurrenceDate: '',
+      occurenceDescription: '',
+    }
   ],
 } as const;
 
@@ -117,6 +96,8 @@ export default function App() {
   const [lastRawJson, setLastRawJson] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentOccurrenceDescription, setCurrentOccurrenceDescription] = useState('');
+
 
   // Pop-over Clarice
   const [clariceAnchor, setClariceAnchor] =
@@ -125,13 +106,29 @@ export default function App() {
 
   /* ---------- Chamada IA FRIDA ---------- */
   const callApi = async () => {
-    if (!selectedQuestion) return;
+    if (!selectedQuestion || !currentOccurrenceDescription.trim()) {
+      alert('Preencha a descrição da ocorrência antes de enviar!');
+      return;
+    }
+
     setLoading(true);
+
+    // Data atual no formato dd/MM/yyyy
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('pt-BR');
 
     const body = JSON.stringify({
       botId: '1',
       currentQuestion: selectedQuestion,
-      events: STATIC_EVENTS,
+      events: {
+        complementaryInformationDto: STATIC_EVENTS.complementaryInformationDto,
+        history: [
+          {
+            occurrenceDate: formattedDate,
+            occurenceDescription: currentOccurrenceDescription.trim(),
+          },
+        ],
+      },
     });
 
     try {
@@ -140,6 +137,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body,
       });
+
       const json = await res.json();
       setLastRawJson(json);
 
@@ -150,9 +148,9 @@ export default function App() {
         naoSabe: ai.naoSabe || false,
         naoSeAplica: ai.naoSeAplica || false,
       };
+
       setOutcome(
-        (Object.keys(flags) as (keyof RespostaFlags)[]).find((k) => flags[k]) ??
-        null,
+        (Object.keys(flags) as (keyof RespostaFlags)[]).find((k) => flags[k]) ?? null
       );
 
       const compInfo = (ai.complementaryInformation || [])
@@ -167,6 +165,7 @@ export default function App() {
       setLoading(false);
     }
   };
+
 
   /* ---------- Chamada IA CLARICE ---------- */
   const handleClarice = async () => {
@@ -334,6 +333,18 @@ export default function App() {
           </MenuItem>
         ))}
       </Select>
+
+      <TextField
+        fullWidth
+        multiline
+        minRows={3}
+        maxRows={6}
+        label="Descrição da ocorrência (será enviada no histórico)"
+        value={currentOccurrenceDescription}
+        onChange={(e) => setCurrentOccurrenceDescription(e.target.value)}
+        placeholder="Descreva o ocorrido aqui..."
+      />
+
 
       <Box sx={{ display: 'flex', gap: 2 }}>
         {['SIM', 'NÃO', 'NS', 'NA'].map(renderButton)}
