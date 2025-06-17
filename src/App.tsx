@@ -97,7 +97,7 @@ export default function App() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentOccurrenceDescription, setCurrentOccurrenceDescription] = useState('');
-  const [clariceSource, setClariceSource] = useState<'resposta' | 'ocorrencia' | null>(null);
+  //const [clariceSource, setClariceSource] = useState<'resposta' | 'ocorrencia' | null>(null);
 
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number; source: 'resposta' | 'ocorrencia' | null }>({
     start: 0,
@@ -246,10 +246,10 @@ export default function App() {
     const selection = window.getSelection();
     if (selection && selection.toString().trim().length) {
       setClariceAnchor(e.currentTarget as HTMLElement);
-      setClariceSource(source);
+      //setClariceSource(source);
     } else {
       setClariceAnchor(null);
-      setClariceSource(null);
+      //setClariceSource(null);
     }
   };
 
