@@ -16,15 +16,21 @@ import {
   Popover,
   type SelectChangeEvent,
 } from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import HeadphonesIcon from '@mui/icons-material/Headphones';
+import PsychologyIcon from '@mui/icons-material/Psychology'
+
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useState } from 'react';
 
 // === Config ===
 const ENDPOINT_FRIDA =
-  'http://10.195.180.105:5678/webhook/frida-risk-question';
+  'http://10.195.180.105/webhook/frida-risk-question';
 const ENDPOINT_CLARICE =
-  'http://10.195.180.105:5678/webhook/clarice-corrige';
+  'http://10.195.180.105/webhook/clarice-corrige';
+const ENDPOINT_LE =
+  'http://10.195.180.105/webhook/clarice-le';
+/* const ENDPOINT_RESUME =
+  'http://10.195.180.105/webhook/clarice-resume'; */
 
 // === Eventos Estáticos (mock) ===
 const STATIC_EVENTS = {
@@ -174,6 +180,38 @@ export default function App() {
   };
 
 
+  const handlePlayResumo = async () => {
+    if (!answerField.trim()) {
+      alert('Campo de resposta vazio!');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(ENDPOINT_LE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: answerField }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar áudio');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+    } catch (err) {
+      console.error('Erro ao tocar áudio:', err);
+      alert('Erro ao tocar resumo em áudio');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /* ---------- Chamada IA CLARICE ---------- */
   const handleClarice = async () => {
     const { start, end, source } = selectionRange;
@@ -234,22 +272,6 @@ export default function App() {
     } else {
       setSelectionRange({ start: 0, end: 0, source: null });
       setClariceAnchor(null);
-    }
-  };
-
-
-  /* ---------- Seleção de texto  ---------- */
-  const handleSelection = (
-    e: React.SyntheticEvent<HTMLDivElement>,
-    source: 'resposta' | 'ocorrencia'
-  ) => {
-    const selection = window.getSelection();
-    if (selection && selection.toString().trim().length) {
-      setClariceAnchor(e.currentTarget as HTMLElement);
-      //setClariceSource(source);
-    } else {
-      setClariceAnchor(null);
-      //setClariceSource(null);
     }
   };
 
@@ -433,7 +455,15 @@ export default function App() {
             disabled={!selectedQuestion}
             sx={{ border: 1, borderColor: 'primary.main' }}
           >
-            <PlayArrowIcon />
+            <PsychologyIcon />
+          </IconButton>
+          <IconButton
+            color="success"
+            onClick={handlePlayResumo}
+            disabled={!answerField.trim()}
+            sx={{ border: 1, borderColor: 'success.main' }}
+          >
+            <HeadphonesIcon />
           </IconButton>
           <IconButton
             color="secondary"
@@ -474,7 +504,7 @@ export default function App() {
       >
         <CircularProgress color="inherit" />
         <Typography variant="subtitle1" sx={{ mt: 2 }}>
-          Aguarde... IA processando análise dos dados sociais...
+          Aguarde... IA realizando processando...
         </Typography>
       </Backdrop>
 
