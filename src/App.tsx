@@ -26,9 +26,9 @@ import { useState } from 'react';
 const ENDPOINT_FRIDA =
   'http://10.195.180.105/webhook/frida-risk-question';
 const ENDPOINT_CLARICE =
-  'http://10.195.180.105/webhook/clarice-corrige';
+  'http://10.195.180.105/webhook/frida-corrector';
 const ENDPOINT_LE =
-  'http://10.195.180.105/webhook/clarice-le';
+  'http://10.195.180.105/webhook/frida-audio-resumer';
 /* const ENDPOINT_RESUME =
   'http://10.195.180.105/webhook/clarice-resume'; */
 
